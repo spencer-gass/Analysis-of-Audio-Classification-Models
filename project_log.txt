@@ -1,0 +1,109 @@
+3-31-2018
+
+    data set division: already done. nsynth comes in train,validate,test bundles
+    
+    colaberation tools:
+        python
+            I need 3.5 for keras but and other vesion works for loading
+        libraries:
+            numpy/scipy
+            librosa for MFCC
+            keras/tensorflow
+            
+    
+    feature selection / preprocessing:
+        time slicing:
+            0:0.5 sec -> attack
+            0.5:3.0   -> sustain
+            3.0:4.0   -> release
+        transform:
+            STFT/spectrogram (scipy)
+            Mel Frequency Cepstral Coefficients (librosa, scikits talkbox, or roll out own)
+            some sort of log scale DFT that would make higher notes look similar to frequecy shifted lower notes
+            Spectral centroid/bandwidth/slope
+        feature reduction:
+            downsampling by average|max pooling?
+            PCA?
+
+4-2-2018
+    
+    everyone is taking up one or two of the classifiers and we will all uses the same features to compare
+
+    official features are
+        spectrogram
+        MFCCs
+        spectral centroid/bandwidth/slope
+
+    I may also try these festures
+        above features with varied resolutions
+        above features with time sliced audio
+        the raw audio
+
+4-3-2018
+    it takes ~ .0001 seconds to open a file
+    it takes ~ .014 seconds to calculate 512x1028 MFCC
+    .014 * 300,000 = ~ 1 hour of transforms per epoch
+    .0001 * 300,000 = 30 seconds of transforms per epoch *thumbs up*
+    transform all the training data and save it in a file so that you don't have to do the transforms while you train.
+    
+    a 256x1000 spectrogram is really redundant
+    you could use just one 256 vector from the middle if dimensionality is an issue
+
+    np array files are larger than original files. not enough disk space.
+    256x100x8 > 1600x4x2
+
+4-4-2018
+    copied vgg type A, and mini vgg from last semester project
+    put together a MLP model. 
+
+    need to do validation runs with feature vector and then again with model parameters
+
+4-5-2018
+    did validation runs on some different transform parameters
+    results are in transforms.py
+    
+    transformed all the data with the best transform and posted it for the group
+
+4-11-2018
+    training environment is ready
+        data generator/sequesnce
+        model handeler
+        model trainer/evaluator
+
+    starting with MLP
+    need to do evaluation runs for different parameters.
+        I could just fully train 5 models and then test them...
+    model parameters to test: 
+        num_hidden_layers   [1, 5, ,max]
+        dropout rate        [0, .1, .5]
+    training parameters such as batch size are limited by hardware and can be justified on that basis
+
+
+4-12-2018
+    comparing drop out rates with all other hyper params constant:
+        10 epochs, 20k data points, 5 layer nn, lr 1e-3
+    dropout_0.0_num_layers_5 0.045
+    dropout_0.5_num_layers_5 0.112
+    elaped time  9.7226833264033
+
+    dropout_0.5_num_layers_5 0.218
+    dropout_0.1_num_layers_5 0.192
+    elaped time  9.765363681316376
+
+    dropout_0.5_num_layers_5 0.248
+    dropout_0.7_num_layers_5 0.033
+    elaped time  9.878087337811788
+
+    comparing num_layers with all else constant:
+        same as above with drop out at 0.5
+    dropout_0.5_num_layers_1 0.069
+    dropout_0.5_num_layers_5 0.125
+    elaped time  8.814055728912354
+
+    dropout_0.5_num_layers_20 0.042  dropout_0.5_num_layers_5 0.233
+    dropout_0.5_num_layers_5 0.048   dropout_0.5_num_layers_20 0.233
+    elaped time  13.413181388378144  elaped time  13.201715695858002
+
+    hidden layer dim is 2048 because that is all my computer could handle
+
+    Starting to train MLP with best params see model/mlp/notes for details
